@@ -49,7 +49,7 @@ func Start() error {
 
 	forgeUniversal := strings.Replace(forge, "installer", "universal", -1)
 	os.Chdir(serverDir)
-	server := exec.Command("java", "-jar", forgeUniversal)
+	server := exec.Command("java", "-server", "-Xms512M", "-Xmx2048M", "-XX:PermSize=256M", "-XX:+UseParNewGC", "-XX:+CMSIncrementalPacing", "-XX:+CMSClassUnloadingEnabled", "-XX:ParallelGCThreads=2", "-XX:MinHeapFreeRatio=5", "-XX:MaxHeapFreeRatio=10", "-jar", forgeUniversal, "nogui")
 	stdout, err := server.StdoutPipe()
 	if err != nil {
 		return err
