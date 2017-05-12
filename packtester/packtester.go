@@ -16,6 +16,7 @@ var serverDir string
 var forge string
 
 func InstallForge(modServerDir string, forgeInstaller string) error {
+	modServerDir, err := filepath.Abs(modServerDir)
 	serverDir = modServerDir
 	forge = forgeInstaller
 	os.Chdir(modServerDir)
