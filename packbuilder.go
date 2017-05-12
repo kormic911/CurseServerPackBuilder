@@ -92,9 +92,11 @@ func main() {
 
 	err = packtester.InstallForge(modServerTestDir, forgeInstaller)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("ERROR: ",err)
 		return
 	}
+
+	packtester.Start()
 }
 
 func cloneDir(modPackOverridesDir, modServerDir string) error {
