@@ -1,9 +1,9 @@
 package main
 import (
 	"fmt"
-	"zipper"
-	"manifestreader"
-	"cursedownloader"
+	"./zipper"
+	"./manifestreader"
+	"./cursedownloader"
 	"flag"
 	"path/filepath"
 	"os"
@@ -23,9 +23,9 @@ func main() {
 		return
 	}
 
-	modPackDir := *modBaseDir + "/modpack"
-	modServerDir := *modBaseDir + "/server"
-	modCacheDir := *modBaseDir + "/cache"
+	modPackDir := filepath.FromSlash(*modBaseDir + "/modpack")
+	modServerDir := filepath.FromSlash(*modBaseDir + "/server")
+	modCacheDir := filepath.FromSlash(*modBaseDir + "/cache")
 
 	err := os.RemoveAll(modPackDir)
 	if err != nil {
@@ -47,20 +47,20 @@ func main() {
 		}
 	}
 
-	err = zipper.Unzip("/home/jwilson/sample/FTBBeyond-1.6.0-1.10.2.zip", modPackDir)
+	err = zipper.Unzip(*modArchive, modPackDir)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	manifestreader.Read(modPackDir + "/manifest.json")
-	err = cloneOverrides(modPackDir + "/" + manifestreader.OverridesDir(), modServerDir)
+	manifestreader.Read(filepath.FromSlash(modPackDir + "/manifest.json"))
+	err = cloneOverrides(filepath.FromSlash(modPackDir + "/" + manifestreader.OverridesDir()), modServerDir)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	err = cursedownloader.DownloadMods(manifestreader.Modlist(), modServerDir + "/mods", modCacheDir)
+	err = cursedownloader.DownloadMods(manifestreader.Modlist(), filepath.FromSlash(modServerDir + "/mods"), modCacheDir)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -78,6 +78,7 @@ func cloneOverrides(modPackOverridesDir, modServerDir string) error {
 func copyOverride(modServerDir, modPackOverridesDir string) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			fmt.Println(err)
 			return nil
 		}
 
@@ -86,11 +87,13 @@ func copyOverride(modServerDir, modPackOverridesDir string) filepath.WalkFunc {
 		if info.IsDir() {
 			err := os.MkdirAll(newpath, 0755)
 			if err != nil {
+				fmt.Println(err)
 				return err
 			}
 		} else {
 			src, err := os.Open(path)
 			if err != nil {
+				fmt.Println(err)
 				return err
 			}
 
@@ -98,6 +101,7 @@ func copyOverride(modServerDir, modPackOverridesDir string) filepath.WalkFunc {
 
 			dest, err := os.Create(newpath)
 			if err != nil {
+				fmt.Println(err)
 				return err
 			}
 
@@ -105,6 +109,7 @@ func copyOverride(modServerDir, modPackOverridesDir string) filepath.WalkFunc {
 
 			_, err = io.Copy(dest, src)
 			if err != nil {
+				fmt.Println(err)
 				return err
 			}
 		}

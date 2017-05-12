@@ -2,7 +2,7 @@ package cursedownloader
 
 import (
 	"fmt"
-	"manifestreader"
+	"../manifestreader"
 	"net/http"
 	"net/url"
 	"strings"
