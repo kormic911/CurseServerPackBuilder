@@ -10,6 +10,7 @@ import (
 	"io"
 	"github.com/gosuri/uilive"
 	"time"
+	"path/filepath"
 )
 
 func DownloadMods(mods []manifestreader.FileType, destPath, cachePath string) error {
@@ -52,7 +53,7 @@ func downloadFile(mod manifestreader.FileType, destPath, cachePath string) error
 			}
 		}
 
-		output, err := os.Create(fmt.Sprintf("%s/%s", cachePathDir, fileName))
+		output, err := os.Create(filepath.FromSlash(fmt.Sprintf("%s/%s", cachePathDir, fileName)))
 		if err != nil {
 			return err
 		}
@@ -64,9 +65,9 @@ func downloadFile(mod manifestreader.FileType, destPath, cachePath string) error
 		if err != nil {
 			return err
 		}
-		copyFromCache(destPath, cachePathDir)
+		copyFromCache(filepath.FromSlash(destPath), filepath.FromSlash(cachePathDir))
 	} else {
-		copyFromCache(destPath, cachePathDir)
+		copyFromCache(filepath.FromSlash(destPath), filepath.FromSlash(cachePathDir))
 		time.Sleep(time.Millisecond * 5)
 	}
 
@@ -74,5 +75,52 @@ func downloadFile(mod manifestreader.FileType, destPath, cachePath string) error
 }
 
 func copyFromCache(destPath, cachePath string) error {
+	err := filepath.Walk(cachePath, copyPath(destPath, cachePath))
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+func copyPath(destPath, cachePath string) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+
+		newpath := strings.Replace(path, cachePath, destPath, -1)
+
+		if info.IsDir() {
+			err := os.MkdirAll(newpath, 0755)
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+		} else {
+			src, err := os.Open(path)
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+
+			defer src.Close()
+
+			dest, err := os.Create(newpath)
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+
+			defer dest.Close()
+
+			_, err = io.Copy(dest, src)
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+		}
+
+		return nil
+	}
 }

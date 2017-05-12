@@ -60,6 +60,10 @@ func Modloaders() []ModloadersType {
 	return manifestObject.Minecraft.Modloaders
 }
 
+func Minecraft() MinecraftType {
+	return manifestObject.Minecraft
+}
+
 func ModpackVersion() string {
 	return manifestObject.Version
 }

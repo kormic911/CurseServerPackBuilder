@@ -4,6 +4,8 @@ import (
 	"./zipper"
 	"./manifestreader"
 	"./cursedownloader"
+	"./forgedownloader"
+	"./packtester"
 	"flag"
 	"path/filepath"
 	"os"
@@ -25,6 +27,7 @@ func main() {
 
 	modPackDir := filepath.FromSlash(*modBaseDir + "/modpack")
 	modServerDir := filepath.FromSlash(*modBaseDir + "/server")
+	modServerTestDir := filepath.FromSlash(*modBaseDir + "/servertest")
 	modCacheDir := filepath.FromSlash(*modBaseDir + "/cache")
 
 	err := os.RemoveAll(modPackDir)
@@ -47,6 +50,13 @@ func main() {
 		}
 	}
 
+	err = os.RemoveAll(modServerTestDir)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("Extracting mod archive")
 	err = zipper.Unzip(*modArchive, modPackDir)
 	if err != nil {
 		fmt.Println(err)
@@ -54,7 +64,8 @@ func main() {
 	}
 
 	manifestreader.Read(filepath.FromSlash(modPackDir + "/manifest.json"))
-	err = cloneOverrides(filepath.FromSlash(modPackDir + "/" + manifestreader.OverridesDir()), modServerDir)
+	fmt.Println("Cloning mod overrides")
+	err = cloneDir(filepath.FromSlash(modPackDir + "/" + manifestreader.OverridesDir()), modServerDir)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -65,17 +76,36 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	forgeInstaller, err := forgedownloader.DownloadForge(manifestreader.Minecraft(), modServerDir)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("Creating test environment")
+	err = cloneDir(modServerDir, modServerTestDir)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = packtester.InstallForge(modServerTestDir, forgeInstaller)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
-func cloneOverrides(modPackOverridesDir, modServerDir string) error {
-	err := filepath.Walk(modPackOverridesDir, copyOverride(modServerDir, modPackOverridesDir))
+func cloneDir(modPackOverridesDir, modServerDir string) error {
+	err := filepath.Walk(modPackOverridesDir, copyDir(modServerDir, modPackOverridesDir))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func copyOverride(modServerDir, modPackOverridesDir string) filepath.WalkFunc {
+func copyDir(modServerDir, modPackOverridesDir string) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Println(err)
