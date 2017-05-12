@@ -1,7 +1,7 @@
 package forgedownloader
 
 import (
-	"../manifestreader"
+	"github.com/kormic911/CurseServerPackBuilder/manifestreader"
 	"fmt"
 	"strings"
 	"net/http"

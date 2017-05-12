@@ -2,7 +2,7 @@ package cursedownloader
 
 import (
 	"fmt"
-	"../manifestreader"
+	"github.com/kormic911/CurseServerPackBuilder/manifestreader"
 	"net/http"
 	"net/url"
 	"strings"

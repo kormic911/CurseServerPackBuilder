@@ -1,11 +1,11 @@
 package main
 import (
 	"fmt"
-	"./zipper"
-	"./manifestreader"
-	"./cursedownloader"
-	"./forgedownloader"
-	"./packtester"
+	"github.com/kormic911/CurseServerPackBuilder/zipper"
+	"github.com/kormic911/CurseServerPackBuilder/manifestreader"
+	"github.com/kormic911/CurseServerPackBuilder/cursedownloader"
+	"github.com/kormic911/CurseServerPackBuilder/forgedownloader"
+	"github.com/kormic911/CurseServerPackBuilder/packtester"
 	"flag"
 	"path/filepath"
 	"os"
