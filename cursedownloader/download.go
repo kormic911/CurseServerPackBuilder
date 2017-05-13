@@ -65,6 +65,7 @@ func downloadFile(mod manifestreader.FileType, destPath, cachePath string) error
 			}
 		}
 
+		
 		output, err := os.Create(filepath.FromSlash(fmt.Sprintf("%s/%s", cachePathDir, fileName)))
 		if err != nil {
 			return err
