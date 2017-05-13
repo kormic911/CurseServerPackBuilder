@@ -5,15 +5,20 @@ import (
 	"github.com/kormic911/CurseServerPackBuilder/manifestreader"
 	"net/http"
 	"net/url"
+	"net/http/cookiejar"
 	"strings"
 	"os"
 	"io"
 	"github.com/gosuri/uilive"
 	"time"
 	"path/filepath"
+	"errors"
 )
 
+var cookieJar *cookiejar.Jar
+
 func DownloadMods(mods []manifestreader.FileType, destPath, cachePath string) error {
+	cookieJar, _ = cookiejar.New(nil)
 	writer := uilive.New()
 	writer.Start()
 	for index, mod := range mods {
@@ -33,7 +38,10 @@ func downloadFile(mod manifestreader.FileType, destPath, cachePath string) error
 	cachePathDir := fmt.Sprintf("%s/%d/%d", cachePath, mod.ProjectID, mod.FileID)
 	if _, err := os.Stat(cachePathDir); os.IsNotExist(err) {
 		modUrl := fmt.Sprintf("https://minecraft.curseforge.com/projects/%d/files/%d/download", mod.ProjectID, mod.FileID)
-		response, err := http.Get(modUrl)
+		httpClient := &http.Client{
+			Jar: cookieJar,
+		}
+		response, err := httpClient.Get(modUrl)
 		if err != nil { 
 			return err
 		}
@@ -45,6 +53,10 @@ func downloadFile(mod manifestreader.FileType, destPath, cachePath string) error
 
 		tokens := strings.Split(downloadPath, "/")
 		fileName := tokens[len(tokens)-1]
+
+		if fileName == "download" {
+			return errors.New("Mod missing/not available for download.")
+		}
 
 		if _, err := os.Stat(cachePathDir); os.IsNotExist(err) {
 			err := os.MkdirAll(cachePathDir, 0755)
